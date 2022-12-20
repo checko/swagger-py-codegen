@@ -6,6 +6,8 @@ from .base import Code, CodeGenerator
 from .jsonschema import Schema, SchemaGenerator, build_default
 import six
 
+from datetime import date,datetime
+
 SUPPORT_METHODS = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head']
 
 
@@ -116,6 +118,15 @@ def _location(swagger_location):
     }
     return location_map.get(swagger_location)
 
+import json
+class myobj2str(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.strftime('%Y-%m-%d %H:%M:%S')
+        if isinstance(obj, date):
+            return obj.strftime('%Y-%m-%d')
+        else:
+            return json.JSONEncoder.default(self.obj)
 
 class FlaskGenerator(CodeGenerator):
     dependencies = [SchemaGenerator]
@@ -213,7 +224,7 @@ class FlaskGenerator(CodeGenerator):
             swagger.update(self.swagger.origin_data)
             swagger.pop('host', None)
             swagger.pop('schemes', None)
-            yield Specification(dict(swagger=json.dumps(swagger, indent=2)))
+            yield Specification(dict(swagger=json.dumps(swagger, indent=2,cls=myobj2str)))
 
         yield Validator()
 
